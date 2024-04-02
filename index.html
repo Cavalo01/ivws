@@ -1,10 +1,155 @@
 <!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title id="titulo">ChatterGo</title>
+    <style>
+        .titulo {
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .subtitulo {
+            color: white;
+            opacity: 50%;
+        }
+
+        body {
+            background: black;
+        }
+
+        #messageList {
+            list-style: none;
+            padding: 0;
+        }
+
+        #messageList li {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        /* Estilo para os inputs */
+        input {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid green;
+            border-radius: 5px;
+            background-color: black;
+            color: white;
+        }
+
+        /* Estilo especÃ­fico para o botÃ£o */
+        #sharePostBtn {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid green;
+            border-radius: 5px;
+            background-color: black;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Estilo para a data abaixo das mensagens */
+        .message-date {
+            color: #a0a0a0;
+            font-size: 0.8em;
+        }
+    </style>
+  <link rel="icon" href="OIG.ico" type="image/x-icon">
+</head>
 <body>
-  <title>IVWS</title>
-  <html>
-    <h1>Links for IVWS</h1>
-    <p>Whois: https://cavalo01.github.io/ivws/whois.php?whois=<site>
-    That's all today.</p>
-    </site></p>
-  </html>
+   <div class="container">
+       <h1 class="titulo">ChatterGo</h1>
+       <p class="subtitulo">Converse livremente sem censuras, programado por recoil999 (html sênior) (todos os créditos vão a ele) </p>
+
+       <section>
+           <input type="text" id="nickname" required autocomplete="off" maxlength="30" placeholder="Username:">
+           <input type="text" id="message" required autocomplete="off" placeholder="Post:">
+           <button id="sharePostBtn">Enviar</button>
+           <h1 class="titulo">Posts:</h1>
+           <ul id="messageList"></ul>
+       </section>
+   </div>
+
+   <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+      import { getDatabase, ref, push, set, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCcAxPr1D1yUpm_Bl6BUj5L8psXtQBs1wA",
+        authDomain: "chattergo-3e534.firebaseapp.com",
+        projectId: "chattergo-3e534",
+        storageBucket: "chattergo-3e534.appspot.com",
+        messagingSenderId: "999892233979",
+        appId: "1:999892233979:web:4ca404b9f862756cf78a5e",
+        measurementId: "G-53R5GYDVK4"
+      };
+
+      const firebaseApp = initializeApp(firebaseConfig);
+      const database = getDatabase(firebaseApp);
+
+      var messageList = document.getElementById('messageList');
+
+      function sendMessage() {
+          var nickname = document.getElementById('nickname').value;
+          var messageInput = document.getElementById('message');
+          var message = messageInput.value;
+          messageInput.value = '';
+
+          if (nickname && message) {
+              var messagesRef = ref(database, 'messages');
+              var newMessageRef = push(messagesRef);
+
+              set(newMessageRef, {
+                  nickname: nickname,
+                  message: message,
+                  timestamp: new Date().toLocaleString()
+              }, function (error) {
+                  if (error) {
+                      console.error("Erro ao enviar a mensagem:", error);
+                  } else {
+                      console.log("Mensagem enviada com sucesso!");
+                  }
+              });
+          }
+      }
+
+      function showMessage(snapshot) {
+          var nickname = snapshot.val().nickname;
+          var message = snapshot.val().message;
+          var timestamp = snapshot.val().timestamp;
+
+          var li = document.createElement('li');
+          li.innerHTML = '<strong>' + nickname + ':</strong> ' + message +
+                         '<br><span class="message-date">' + timestamp + '</span>';
+
+          messageList.prepend(li);
+      }
+
+      var messagesRef = ref(database, 'messages');
+      onChildAdded(messagesRef, function(snapshot) {
+          showMessage(snapshot);
+
+          var messageCount = messageList.childElementCount;
+          if (messageCount > 100) {
+              var oldestMessageRef = ref(database, 'messages/' + snapshot.key);
+
+              set(oldestMessageRef, null, function(error) {
+                  if (error) {
+                      console.error("Erro ao excluir mensagem mais antiga:", error);
+                  } else {
+                      console.log("Mensagem mais antiga excluída com sucesso!");
+                  }
+              });
+          }
+      });
+
+      document.getElementById('sharePostBtn').addEventListener('click', sendMessage);
+   </script>
 </body>
+             </html>
+                                  
